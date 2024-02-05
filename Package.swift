@@ -15,8 +15,8 @@ let package = Package(
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
-        // Add Firebase as a dependency
-        .package(url: "https://github.com/firebase/firebase-ios-sdk.git", from: "10.19.1") // Replace X.X.X with the desired version
+        // Add Firebase as a dependency with a specific version
+        .package(url: "https://github.com/firebase/firebase-ios-sdk.git", from: "10.19.1") // Replace "10.19.1" with the desired version
     ],
     targets: [
         .target(
@@ -33,5 +33,8 @@ let package = Package(
         .testTarget(
             name: "FirebaseiOSMiseboxTests",
             dependencies: ["FirebaseiOSMisebox"]),
-    ]
+    ],
+    // Specify the version of your package here
+    version: "1.0.0"
 )
+
