@@ -13,13 +13,11 @@ import FirebaseFirestore
 
 public class FirestoreManager {
     private let db = Firestore.firestore()
-    
-    // MARK: - Enums
+    public init() {}
 
     public enum FirestoreError: Error {
         case unknown, invalidSnapshot, networkError, documentNotFound
     }
-    public init() {}
     
     private func documentReference(forCollection collection: String, documentID: String) -> DocumentReference {
          return db.collection(collection).document(documentID)

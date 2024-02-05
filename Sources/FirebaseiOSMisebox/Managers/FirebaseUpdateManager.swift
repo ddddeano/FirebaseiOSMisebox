@@ -12,14 +12,14 @@ public protocol Updatable {
 }
 public class FirestoreUpdateManager {
     private let db = Firestore.firestore()
-    
+    public init() {}
+
     public enum FirestoreFieldValueOperation {
         case arrayUnion(Any)
         case arrayRemove(Any)
         case replaceArray(Any)
     }
-    
-    func documentReference(forCollection collection: String, documentID: String) -> DocumentReference {
+    public func documentReference(forCollection collection: String, documentID: String) -> DocumentReference {
         return db.collection(collection).document(documentID)
     }
     

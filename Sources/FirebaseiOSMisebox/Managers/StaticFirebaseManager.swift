@@ -10,8 +10,7 @@ import FirebaseFirestore
 
 public class StaticFirestoreManager {
     private static let db = Firestore.firestore()
-    
-    // MARK: - Enums
+    public init() {}
     
     public enum FirestoreError: Error {
         case unknown, invalidSnapshot, networkError, documentNotFound
@@ -24,7 +23,6 @@ public class StaticFirestoreManager {
         let documentRef = db.collection(collection).document(documentID)
         let documentSnapshot = try await documentRef.getDocument()
         
-
         let dependentArray = documentSnapshot.data()?[fieldName] as? [[String: Any]] ?? []
         
         return dependentArray
