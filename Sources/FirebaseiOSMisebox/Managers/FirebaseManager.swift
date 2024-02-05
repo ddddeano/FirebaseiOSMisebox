@@ -59,7 +59,7 @@ public class FirestoreManager {
     }
     
     
-    @discardableResult
+    /*@discardableResult
     public func createFeedEntry<T: Postable>(entry: T) async throws -> String {
         do {
             let document = try await db.collection("posts").addDocument(data: entry.toFeedEntry())
@@ -70,7 +70,7 @@ public class FirestoreManager {
             print("Error creating feed entry: \(error)")
             throw error
         }
-    }
+    }*/
     
     public func addDocumentListener<T: Listenable>(for entity: T, completion: @escaping (Result<T, Error>) -> Void) -> ListenerRegistration {
         let docRef = db.collection(entity.collection).document(entity.id)
