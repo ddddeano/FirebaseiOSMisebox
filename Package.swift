@@ -35,6 +35,5 @@ let package = Package(
             dependencies: ["FirebaseiOSMisebox"]),
     ],
     // Specify the version of your package here
-    version: "1.0.0"
 )
 
