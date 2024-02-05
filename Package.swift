@@ -32,6 +32,6 @@ let package = Package(
             ]),
         .testTarget(
             name: "FirebaseiOSMiseboxTests",
-            dependencies: ["FirebaseiOSMisebox"]),
+            dependencies: ["FirebaseiOSMisebox"])
     ]
 )
