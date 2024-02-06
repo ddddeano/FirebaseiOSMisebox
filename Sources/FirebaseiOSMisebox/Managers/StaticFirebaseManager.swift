@@ -1,6 +1,4 @@
-//
-//  File.swift
-//  
+//  StaticFirestoreManager.swift
 //
 //  Created by Daniel Watson on 05.02.2024.
 //
@@ -18,7 +16,7 @@ public class StaticFirestoreManager {
     public static func documentReference(forCollection collection: String, documentID: String) -> DocumentReference {
         return db.collection(collection).document(documentID)
     }
-        
+    
     public static func getDocumentSnapshot(collection: String, documentID: String) async throws -> DocumentSnapshot {
         let documentRef = documentReference(forCollection: collection, documentID: documentID)
         return try await documentRef.getDocument()
@@ -28,22 +26,28 @@ public class StaticFirestoreManager {
         let snapshot = try await getDocumentSnapshot(collection: collection, documentID: documentID)
         return snapshot.data()?[fieldName] as? T
     }
-        
-    public static func updateArray<T>(
+    
+    public static func updateArray(
         collection: String,
         documentID: String,
         arrayName: String,
-        updateBlock: @escaping ([T]) -> [T]
+        matchKey: String,
+        matchValue: String,
+        updateKey: String,
+        newValue: Any
     ) async throws {
-        let snapshot = try await getDocumentSnapshot(collection: collection, documentID: documentID)
+        let documentRef = documentReference(forCollection: collection, documentID: documentID)
+        let snapshot = try await documentRef.getDocument()
         
-        guard var array = snapshot.data()?[arrayName] as? [T] else {
+        guard var array = snapshot.data()?[arrayName] as? [[String: Any]] else {
             throw FirestoreError.invalidSnapshot
         }
         
-        array = updateBlock(array)
+        for (index, var dict) in array.enumerated() where dict[matchKey] as? String == matchValue {
+            dict[updateKey] = newValue
+            array[index] = dict
+        }
         
-        let documentRef = documentReference(forCollection: collection, documentID: documentID)
         try await documentRef.updateData([arrayName: array])
     }
 }
