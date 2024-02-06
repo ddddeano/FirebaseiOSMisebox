@@ -10,7 +10,6 @@ import FirebaseFirestore
 
 public class StaticFirestoreManager {
     private static let db = Firestore.firestore()
-    public init() {}
     
     public enum FirestoreError: Error {
         case unknown, invalidSnapshot, networkError, documentNotFound
@@ -19,12 +18,32 @@ public class StaticFirestoreManager {
     public static func documentReference(forCollection collection: String, documentID: String) -> DocumentReference {
         return db.collection(collection).document(documentID)
     }
-    public static func getDependentArray(forCollection collection: String, documentID: String, fieldName: String) async throws -> [[String: Any]] {
-        let documentRef = db.collection(collection).document(documentID)
-        let documentSnapshot = try await documentRef.getDocument()
         
-        let dependentArray = documentSnapshot.data()?[fieldName] as? [[String: Any]] ?? []
+    public static func getDocumentSnapshot(collection: String, documentID: String) async throws -> DocumentSnapshot {
+        let documentRef = documentReference(forCollection: collection, documentID: documentID)
+        return try await documentRef.getDocument()
+    }
+    
+    public static func getFieldData<T>(collection: String, documentID: String, fieldName: String) async throws -> T? {
+        let snapshot = try await getDocumentSnapshot(collection: collection, documentID: documentID)
+        return snapshot.data()?[fieldName] as? T
+    }
         
-        return dependentArray
+    public static func updateArray<T>(
+        collection: String,
+        documentID: String,
+        arrayName: String,
+        updateBlock: @escaping ([T]) -> [T]
+    ) async throws {
+        let snapshot = try await getDocumentSnapshot(collection: collection, documentID: documentID)
+        
+        guard var array = snapshot.data()?[arrayName] as? [T] else {
+            throw FirestoreError.invalidSnapshot
+        }
+        
+        array = updateBlock(array)
+        
+        let documentRef = documentReference(forCollection: collection, documentID: documentID)
+        try await documentRef.updateData([arrayName: array])
     }
 }
