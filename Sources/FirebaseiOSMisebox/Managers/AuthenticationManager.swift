@@ -31,10 +31,8 @@ public class AuthenticationManager: ObservableObject {
     
     public func authenticate() async throws -> FirebaseUser {
         if let currentUser = Auth.auth().currentUser {
-            // User is already signed in
             return FirebaseUser(user: currentUser)
         } else {
-            // No user signed in, proceed with anonymous sign-in
             return try await signInAnon()
         }
     }
@@ -49,67 +47,51 @@ public class AuthenticationManager: ObservableObject {
     public func signOut() {
          do {
              try Auth.auth().signOut()
-             // Handle any additional cleanup or state reset here
          } catch let signOutError as NSError {
              print("Error signing out: %@", signOutError)
-             // Handle errors (e.g., update state, send notifications)
          }
      }
+    public func deleteCurrentUser() async throws {
+          guard let user = Auth.auth().currentUser else {
+              throw URLError(.badURL)
+          }
+          try await user.delete()
+      }
 }
 
-// MARK: Sign IN Email
-
+// MARK: - Account Linking
 extension AuthenticationManager {
-    public func createUser(email: String, password: String) async throws -> FirebaseUser {
-        let authResult = try await Auth.auth().createUser(withEmail: email, password: password)
-        return FirebaseUser(user: authResult.user)
-    }
-
-    public func signInUser(email: String, password: String) async throws -> FirebaseUser {
-        let authResult = try await Auth.auth().signIn(withEmail: email, password: password)
-        return FirebaseUser(user: authResult.user)
-    }
     
-    public func linkEmailToUser(email: String, password: String, user: User) async throws -> FirebaseUser {
-        do {
-            let linkedUser = try await linkEmail(email: email, password: password)
-            return linkedUser
-        } catch {
-            print("Error linking email to user: \(error.localizedDescription)")
-            throw error
-        }
-    }
+    public enum AuthProviderOption: String {
+          case email = "password"
+          case google = "google.com"
+          case apple = "apple.com"
+      }
     @discardableResult
     public func linkEmail(email: String, password: String) async throws -> FirebaseUser {
         let credential = EmailAuthProvider.credential(withEmail: email, password: password)
+        return try await linkAccount(credential: credential)
+    }
+
+    @discardableResult
+    public func linkGoogle(idToken: String, accessToken: String) async throws -> FirebaseUser {
+        let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: accessToken)
+        return try await linkAccount(credential: credential)
+    }
+
+    @discardableResult
+    public func linkApple(idToken: String, rawNonce: String) async throws -> FirebaseUser {
+        let credential = OAuthProvider.credential(withProviderID: AuthProviderOption.apple.rawValue,
+                                                   idToken: idToken,
+                                                   rawNonce: rawNonce)
+        return try await linkAccount(credential: credential)
+    }
+
+    private func linkAccount(credential: AuthCredential) async throws -> FirebaseUser {
         guard let currentUser = Auth.auth().currentUser else {
-            throw URLError(.badServerResponse)
+            throw NSError(domain: "AuthenticationManager", code: 0, userInfo: [NSLocalizedDescriptionKey: "No current user available for linking."])
         }
         let authResult = try await currentUser.link(with: credential)
         return FirebaseUser(user: authResult.user)
-    }
-}
-
-// MARK: Sign IN SSO
-
-extension AuthenticationManager {
- 
-    public struct GoogleSignInResultModel {
-        public let idToken: String
-        public let accessToken: String
-        
-        public init (idToken: String, accessToken: String) {
-            self.idToken = idToken
-            self.accessToken = accessToken
-        }
-    }
-    
-    public func signInWithGoogle(tokens: GoogleSignInResultModel) async throws -> FirebaseUser {
-        let credential = GoogleAuthProvider.credential(withIDToken: tokens.idToken, accessToken: tokens.accessToken)
-        return try await signIn(credential: credential)
-    }
-    public func signIn(credential: AuthCredential) async throws -> FirebaseUser {
-        let authDataResult = try await Auth.auth().signIn(with: credential)
-        return FirebaseUser(user: authDataResult.user)
     }
 }
