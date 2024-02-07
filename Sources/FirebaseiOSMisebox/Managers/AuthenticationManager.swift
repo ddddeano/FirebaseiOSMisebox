@@ -97,6 +97,11 @@ extension AuthenticationManager {
     public struct GoogleSignInResultModel {
         public let idToken: String
         public let accessToken: String
+        
+        public init (idToken: String, accessToken: String) {
+            self.idToken = idToken
+            self.accessToken = accessToken
+        }
     }
     
     public func signInWithGoogle(tokens: GoogleSignInResultModel) async throws -> FirebaseUser {
