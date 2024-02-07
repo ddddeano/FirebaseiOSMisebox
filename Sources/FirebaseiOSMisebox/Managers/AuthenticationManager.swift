@@ -88,23 +88,22 @@ extension AuthenticationManager {
         let authResult = try await currentUser.link(with: credential)
         return FirebaseUser(user: authResult.user)
     }
-   
 }
 
 // MARK: Sign IN SSO
 
 extension AuthenticationManager {
  
-    struct GoogleSignInResultModel {
-        let idToken: String
-        let accessToken: String
+    public struct GoogleSignInResultModel {
+        public let idToken: String
+        public let accessToken: String
     }
     
-    func signInWithGoogle(tokens: GoogleSignInResultModel) async throws -> FirebaseUser {
+    public func signInWithGoogle(tokens: GoogleSignInResultModel) async throws -> FirebaseUser {
         let credential = GoogleAuthProvider.credential(withIDToken: tokens.idToken, accessToken: tokens.accessToken)
         return try await signIn(credential: credential)
     }
-    func signIn(credential: AuthCredential) async throws -> FirebaseUser {
+    public func signIn(credential: AuthCredential) async throws -> FirebaseUser {
         let authDataResult = try await Auth.auth().signIn(with: credential)
         return FirebaseUser(user: authDataResult.user)
     }
