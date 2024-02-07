@@ -1,7 +1,4 @@
 // swift-tools-version:5.9
-// The swift-tools-version declares the minimum version of Swift required to build this package.
-
-// swift-tools-version:5.9
 import PackageDescription
 
 let package = Package(
@@ -28,8 +25,9 @@ let package = Package(
                 .product(name: "FirebaseAuth", package: "firebase-ios-sdk"),
                 .product(name: "FirebaseFirestore", package: "firebase-ios-sdk"),
                 .product(name: "FirebaseStorage", package: "firebase-ios-sdk"),
-                // Add GoogleSignIn dependency here
-                .product(name: "GoogleSignIn", package: "GoogleSignIn-iOS")
+                // Include both GoogleSignIn and GoogleSignInSwift products
+                .product(name: "GoogleSignIn", package: "GoogleSignIn-iOS"),
+                .product(name: "GoogleSignInSwift", package: "GoogleSignIn-iOS")
             ]
         ),
         .testTarget(
@@ -38,3 +36,4 @@ let package = Package(
         )
     ]
 )
+
