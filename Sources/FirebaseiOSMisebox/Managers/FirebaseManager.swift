@@ -72,25 +72,37 @@ public class FirestoreManager {
     
     public func addDocumentListener<T: Listenable>(for entity: T, completion: @escaping (Result<T, Error>) -> Void) -> ListenerRegistration {
         let docRef = db.collection(entity.collection).document(entity.id)
+        print("Setting up listener for document: \(entity.collection)/\(entity.id)")
         return docRef.addSnapshotListener { documentSnapshot, error in
             DispatchQueue.main.async {
                 if let error = error {
-                    print("Firestore error: \(error.localizedDescription)")
+                    print("Firestore error for document \(entity.collection)/\(entity.id): \(error.localizedDescription)")
                     completion(.failure(error))
                     return
                 }
-                guard let document = documentSnapshot, document.exists, let data = document.data() else {
-                    print("Document does not exist or no data found")
-                    completion(.failure(NSError(domain: "FirestoreManager", code: -2, userInfo: [NSLocalizedDescriptionKey: "Document does not exist or no data found"])))
+                guard let document = documentSnapshot else {
+                    print("DocumentSnapshot is nil for document \(entity.collection)/\(entity.id)")
+                    completion(.failure(NSError(domain: "FirestoreManager", code: -1, userInfo: [NSLocalizedDescriptionKey: "DocumentSnapshot is nil"])))
                     return
                 }
-                print("Received document data: \(data)")
+                if !document.exists {
+                    print("Document \(entity.collection)/\(entity.id) does not exist.")
+                    completion(.failure(NSError(domain: "FirestoreManager", code: -2, userInfo: [NSLocalizedDescriptionKey: "Document does not exist"])))
+                    return
+                }
+                guard let data = document.data() else {
+                    print("No data found in document \(entity.collection)/\(entity.id)")
+                    completion(.failure(NSError(domain: "FirestoreManager", code: -3, userInfo: [NSLocalizedDescriptionKey: "No data found"])))
+                    return
+                }
+                print("Received document data for \(entity.collection)/\(entity.id): \(data)")
                 var updatedEntity = entity
                 updatedEntity.update(with: data)
                 completion(.success(updatedEntity))
             }
         }
     }
+
     
     public func addCollectionListener<T: FirestoreEntity>(collection: String, completion: @escaping (Result<[T], Error>) -> Void) -> ListenerRegistration {
         let collectionRef = db.collection(collection)
