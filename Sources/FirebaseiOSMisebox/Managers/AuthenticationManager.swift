@@ -43,8 +43,12 @@ public class AuthenticationManager: ObservableObject {
         return FirebaseUser(user: authResultData.user)
     }
 
-    public func signOut() throws {
-        try Auth.auth().signOut()
+    public func signOut() async {
+        do {
+            try Auth.auth().signOut()
+        } catch {
+            print("Error signing out: \(error)")
+        }
     }
     
     public func deleteCurrentUser() async throws {
