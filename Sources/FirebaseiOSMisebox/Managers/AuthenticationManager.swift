@@ -39,55 +39,54 @@ public class AuthenticationManager: ObservableObject {
     
     @discardableResult
     public func signInAnon() async throws -> FirebaseUser {
-        let authResultData =  try await Auth.auth().signInAnonymously()
+        let authResultData = try await Auth.auth().signInAnonymously()
         return FirebaseUser(user: authResultData.user)
     }
 
- 
-    public func signOut() {
-         do {
-             try Auth.auth().signOut()
-         } catch let signOutError as NSError {
-             print("Error signing out: %@", signOutError)
-         }
-     }
+    public func signOut() throws {
+        try Auth.auth().signOut()
+    }
+    
     public func deleteCurrentUser() async throws {
-          guard let user = Auth.auth().currentUser else {
-              throw URLError(.badURL)
-          }
-          try await user.delete()
-      }
+        guard let user = Auth.auth().currentUser else {
+            throw URLError(.badURL)
+        }
+        try await user.delete()
+    }
 }
 
 // MARK: - Account Linking
 extension AuthenticationManager {
     
-    public enum AuthProviderOption: String {
-          case email = "password"
-          case google = "google.com"
-          case apple = "apple.com"
-      }
-    @discardableResult
-    public func linkEmail(email: String, password: String) async throws -> FirebaseUser {
-        let credential = EmailAuthProvider.credential(withEmail: email, password: password)
-        return try await linkAccount(credential: credential)
+    public enum AuthenticationMethod {
+        case anon
+        case email(String, String) // Email, Password
+        case google(String, String) // ID Token, Access Token
+        case apple(String, String) // ID Token, Raw Nonce
+        case other(String) // For extending with other providers in the future
     }
-
+    
     @discardableResult
-    public func linkGoogle(idToken: String, accessToken: String) async throws -> FirebaseUser {
-        let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: accessToken)
-        return try await linkAccount(credential: credential)
+    public func linkAccount(method: AuthenticationMethod) async throws -> FirebaseUser {
+        switch method {
+        case .email(let email, let password):
+            let credential = EmailAuthProvider.credential(withEmail: email, password: password)
+            return try await performLinking(credential: credential)
+        
+        case .google(let idToken, let accessToken):
+            let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: accessToken)
+            return try await performLinking(credential: credential)
+        
+        case .apple(let idToken, let rawNonce):
+            let credential = OAuthProvider.credential(withProviderID: "apple.com", idToken: idToken, rawNonce: rawNonce)
+            return try await performLinking(credential: credential)
+        
+        case .anon, .other:
+            throw NSError(domain: "AuthenticationManager", code: -1, userInfo: [NSLocalizedDescriptionKey: "Unsupported method for linking."])
+        }
     }
-
-    @discardableResult
-    public func linkApple(idToken: String, rawNonce: String) async throws -> FirebaseUser {
-        let credential = OAuthProvider.credential(withProviderID: AuthProviderOption.apple.rawValue,
-                                                   idToken: idToken,
-                                                   rawNonce: rawNonce)
-        return try await linkAccount(credential: credential)
-    }
-
-    private func linkAccount(credential: AuthCredential) async throws -> FirebaseUser {
+    
+    private func performLinking(credential: AuthCredential) async throws -> FirebaseUser {
         guard let currentUser = Auth.auth().currentUser else {
             throw NSError(domain: "AuthenticationManager", code: 0, userInfo: [NSLocalizedDescriptionKey: "No current user available for linking."])
         }
