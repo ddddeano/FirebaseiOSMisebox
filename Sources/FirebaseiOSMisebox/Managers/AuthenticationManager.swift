@@ -65,7 +65,7 @@ extension AuthenticationManager {
         case apple(String, String) // ID Token, Raw Nonce
         case other(String) // For extending with other providers in the future
         
-        var identifier: String {
+        public var identifier: String {
             switch self {
             case .anon: return "Anonymous"
             case .email: return "Email"
