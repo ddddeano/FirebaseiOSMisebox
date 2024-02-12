@@ -51,16 +51,18 @@ public class AuthenticationManager: ObservableObject {
         try await user.delete()
     }
 }
-
 // MARK: - Account Linking
 extension AuthenticationManager {
-    
     @discardableResult
     public func signInWithGoogle(tokens: GoogleSignInResultModel) async throws -> FirebaseUser {
         let credential = GoogleAuthProvider.credential(withIDToken: tokens.idToken, accessToken: tokens.accessToken)
         let authResult = try await Auth.auth().signIn(with: credential)
         return FirebaseUser(user: authResult.user)
     }
+}
+
+// MARK: - Account Linking
+extension AuthenticationManager {
     
     @discardableResult
     public func linkGoogleAccount(_ idToken: String, _ accessToken: String) async throws -> FirebaseUser {
@@ -77,12 +79,11 @@ extension AuthenticationManager {
 // MARK: - Helpers
 extension AuthenticationManager {
     
-    public enum AuthenticationMethod {
+    enum AuthenticationMethod {
         case anon
-        case email
+        case email(email: String, password: String)
         case google
         case apple
-        case other
     }
     
     public struct GoogleSignInResultModel {
