@@ -51,7 +51,7 @@ public class AuthenticationManager: ObservableObject {
         try await user.delete()
     }
 }
-// MARK: - Account Linking
+// MARK: - Account Creation
 extension AuthenticationManager {
     @discardableResult
     public func signInWithGoogle(tokens: GoogleSignInResultModel) async throws -> FirebaseUser {
@@ -65,14 +65,28 @@ extension AuthenticationManager {
 extension AuthenticationManager {
     
     @discardableResult
-    public func linkGoogleAccount(_ idToken: String, _ accessToken: String) async throws -> FirebaseUser {
-        guard let currentUser = Auth.auth().currentUser else {
-            throw NSError(domain: "AuthenticationManager", code: 0, userInfo: [NSLocalizedDescriptionKey: "No current user available for linking."])
+    func linkEmail(email: String, password: String) async throws -> FirebaseUser {
+        let credential = EmailAuthProvider.credential(withEmail: email, password: password)
+        return try await linkCredential(credential: credential)
+    }
+    
+    func linkGoogle(tokens: GoogleSignInResultModel) async throws -> FirebaseUser {
+        let credential = GoogleAuthProvider.credential(withIDToken: tokens.idToken, accessToken: tokens.accessToken)
+        return try await linkCredential(credential: credential)
+    }
+    
+    func linkApple(tokens: SignInWithAppleResult) async throws -> FirebaseUser {
+        let credential = OAuthProvider.credential(withProviderID: AuthProviderOption.apple.rawValue, idToken: tokens.token, rawNonce: tokens.nonce)
+        return try await linkCredential(credential: credential)
+    }
+    
+    private func linkCredential(credential: AuthCredential) async throws -> FirebaseUser {
+        guard let user = Auth.auth().currentUser else {
+            throw URLError(.badURL)
         }
         
-        let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: accessToken)
-        let authResult = try await currentUser.link(with: credential)
-        return FirebaseUser(user: authResult.user)
+        let authDataResult = try await user.link(with: credential)
+        return FirebaseUser(user: authDataResult.user)
     }
 }
 
@@ -91,6 +105,11 @@ extension AuthenticationManager {
         public let accessToken: String
         public let name: String?
         public let email: String?
+    }
+    public enum AuthProviderOption: String {
+        case email = "password"
+        case google = "google.com"
+        case apple = "apple.com"
     }
 }
 
