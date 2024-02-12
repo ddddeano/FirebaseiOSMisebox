@@ -65,17 +65,17 @@ extension AuthenticationManager {
 extension AuthenticationManager {
     
     @discardableResult
-    func linkEmail(email: String, password: String) async throws -> FirebaseUser {
+    public func linkEmail(email: String, password: String) async throws -> FirebaseUser {
         let credential = EmailAuthProvider.credential(withEmail: email, password: password)
         return try await linkCredential(credential: credential)
     }
     
-    func linkGoogle(tokens: GoogleSignInResultModel) async throws -> FirebaseUser {
+    public func linkGoogle(tokens: GoogleSignInResultModel) async throws -> FirebaseUser {
         let credential = GoogleAuthProvider.credential(withIDToken: tokens.idToken, accessToken: tokens.accessToken)
         return try await linkCredential(credential: credential)
     }
     
-    func linkApple(tokens: SignInWithAppleResult) async throws -> FirebaseUser {
+    public func linkApple(tokens: SignInWithAppleResult) async throws -> FirebaseUser {
         let credential = OAuthProvider.credential(withProviderID: AuthProviderOption.apple.rawValue, idToken: tokens.token, rawNonce: tokens.nonce)
         return try await linkCredential(credential: credential)
     }
