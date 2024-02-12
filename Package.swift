@@ -16,7 +16,9 @@ let package = Package(
         // Firebase SDK
         .package(url: "https://github.com/firebase/firebase-ios-sdk.git", from: "10.19.1"),
         // Google Sign-In SDK
-        .package(url: "https://github.com/google/GoogleSignIn-iOS.git", from: "7.0.0")
+        .package(url: "https://github.com/google/GoogleSignIn-iOS.git", from: "7.0.0"),
+        // GlobalMiseboxiOS package
+        .package(url: "https://github.com/ddddeano/GlobalMiseboxiOS.git", from: "1.0.0")
     ],
     targets: [
         .target(
@@ -27,7 +29,9 @@ let package = Package(
                 .product(name: "FirebaseStorage", package: "firebase-ios-sdk"),
                 // Include both GoogleSignIn and GoogleSignInSwift products
                 .product(name: "GoogleSignIn", package: "GoogleSignIn-iOS"),
-                .product(name: "GoogleSignInSwift", package: "GoogleSignIn-iOS")
+                .product(name: "GoogleSignInSwift", package: "GoogleSignIn-iOS"),
+                // Include GlobalMiseboxiOS package
+                "GlobalMiseboxiOS"
             ]
         ),
         .testTarget(
@@ -36,4 +40,5 @@ let package = Package(
         )
     ]
 )
+
 

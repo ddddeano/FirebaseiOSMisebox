@@ -56,6 +56,13 @@ public class AuthenticationManager: ObservableObject {
 extension AuthenticationManager {
     
     @discardableResult
+       func signInWithGoogle(tokens: GoogleSignInResultModel) async throws -> FirebaseUser {
+           let credential = GoogleAuthProvider.credential(withIDToken: tokens.idToken, accessToken: tokens.accessToken)
+           let authResult = try await Auth.auth().signIn(with: credential)
+           return FirebaseUser(user: authResult.user)
+       }
+       
+    @discardableResult
     public func linkAccount(method: AuthenticationMethod) async throws -> FirebaseUser {
         guard let currentUser = Auth.auth().currentUser else {
             throw NSError(domain: "AuthenticationManager", code: 0, userInfo: [NSLocalizedDescriptionKey: "No current user available for linking."])
@@ -89,10 +96,11 @@ extension AuthenticationManager {
         case other(String) // For extending with other providers in the future
     }
     
-    struct GoogleSignInResultModel {
+    public struct GoogleSignInResultModel {
         let idToken: String
         let accessToken: String
         let name: String?
         let email: String?
     }
 }
+

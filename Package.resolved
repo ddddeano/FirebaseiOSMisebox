@@ -37,6 +37,15 @@
       }
     },
     {
+      "identity" : "globalmiseboxios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/ddddeano/GlobalMiseboxiOS.git",
+      "state" : {
+        "revision" : "258e950138b6609a6ad5b988804f20b88117e807",
+        "version" : "1.0.31"
+      }
+    },
+    {
       "identity" : "googleappmeasurement",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/google/GoogleAppMeasurement.git",
