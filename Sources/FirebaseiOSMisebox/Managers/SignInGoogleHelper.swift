@@ -11,7 +11,9 @@ import GoogleSignIn
 import GoogleSignInSwift
 
 public final class SignInGoogleHelper {
-    
+
+    public init() {}
+
     @MainActor
     public func signIn() async throws -> AuthenticationManager.GoogleSignInResultModel {
         guard let topVC = Utilities.shared.topViewController() else {
