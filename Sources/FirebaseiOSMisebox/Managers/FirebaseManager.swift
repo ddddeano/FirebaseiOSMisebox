@@ -95,7 +95,7 @@ public class FirestoreManager {
                     completion(.failure(NSError(domain: "FirestoreManager", code: -3, userInfo: [NSLocalizedDescriptionKey: "No data found"])))
                     return
                 }
-                print("Received document data for \(entity.collection)/\(entity.id): \(data)")
+                print("[addDocumentListener]Received document data for \(entity.collection)/\(entity.id): \(data)")
                 var updatedEntity = entity
                 updatedEntity.update(with: data)
                 completion(.success(updatedEntity))

@@ -1,10 +1,3 @@
-//
-//  File.swift
-//  
-//
-//  Created by Daniel Watson on 22.01.24.
-//
-
 import Foundation
 import Firebase
 import FirebaseAuth
@@ -62,24 +55,6 @@ public class AuthenticationManager: ObservableObject {
 // MARK: - Account Linking
 extension AuthenticationManager {
     
-    public enum AuthenticationMethod {
-        case anon
-        case email(String, String) // Email, Password
-        case google(String, String) // ID Token, Access Token
-        case apple(String, String) // ID Token, Raw Nonce
-        case other(String) // For extending with other providers in the future
-        
-        public var identifier: String {
-            switch self {
-            case .anon: return "Anonymous"
-            case .email: return "Email"
-            case .google: return "Google"
-            case .apple: return "Apple"
-            case .other(let id): return id
-            }
-        }
-    }
-    
     @discardableResult
     public func linkAccount(method: AuthenticationMethod) async throws -> FirebaseUser {
         guard let currentUser = Auth.auth().currentUser else {
@@ -100,5 +75,24 @@ extension AuthenticationManager {
         
         let authResult = try await currentUser.link(with: credential)
         return FirebaseUser(user: authResult.user)
+    }
+}
+
+// MARK: - Helpers
+extension AuthenticationManager {
+    
+    public enum AuthenticationMethod {
+        case anon
+        case email(String, String) // Email, Password
+        case google(String, String) // ID Token, Access Token
+        case apple(String, String) // ID Token, Raw Nonce
+        case other(String) // For extending with other providers in the future
+    }
+    
+    struct GoogleSignInResultModel {
+        let idToken: String
+        let accessToken: String
+        let name: String?
+        let email: String?
     }
 }
