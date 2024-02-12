@@ -81,7 +81,7 @@ extension AuthenticationManager {
     
     enum AuthenticationMethod {
         case anon
-        case email(email: String, password: String)
+        case email
         case google
         case apple
     }
