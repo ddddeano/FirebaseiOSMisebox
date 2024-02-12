@@ -79,7 +79,7 @@ extension AuthenticationManager {
 // MARK: - Helpers
 extension AuthenticationManager {
     
-    enum AuthenticationMethod {
+    public enum AuthenticationMethod {
         case anon
         case email
         case google
