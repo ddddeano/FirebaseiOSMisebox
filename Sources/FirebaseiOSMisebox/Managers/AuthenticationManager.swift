@@ -56,7 +56,7 @@ public class AuthenticationManager: ObservableObject {
 extension AuthenticationManager {
     
     @discardableResult
-    func signInWithGoogle(tokens: GoogleSignInResultModel) async throws -> FirebaseUser {
+    public func signInWithGoogle(tokens: GoogleSignInResultModel) async throws -> FirebaseUser {
         let credential = GoogleAuthProvider.credential(withIDToken: tokens.idToken, accessToken: tokens.accessToken)
         let authResult = try await Auth.auth().signIn(with: credential)
         return FirebaseUser(user: authResult.user)
