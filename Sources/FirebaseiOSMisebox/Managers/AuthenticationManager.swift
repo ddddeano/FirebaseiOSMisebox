@@ -86,10 +86,10 @@ extension AuthenticationManager {
     }
     
     public struct GoogleSignInResultModel {
-        let idToken: String
-        let accessToken: String
-        let name: String?
-        let email: String?
+        public let idToken: String
+        public let accessToken: String
+        public let name: String?
+        public let email: String?
     }
 }
 
