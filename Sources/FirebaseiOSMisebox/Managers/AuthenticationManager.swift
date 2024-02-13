@@ -76,7 +76,7 @@ extension AuthenticationManager {
     }
     @discardableResult
     public func linkApple(tokens: SignInWithAppleResult) async throws -> FirebaseUser {
-        let credential = OAuthProvider.credential(withProviderID: AuthProviderOption.apple.rawValue, idToken: tokens.token, rawNonce: tokens.nonce)
+        let credential = OAuthProvider.credential(withProviderID: AuthenticationMethod.apple.rawValue, idToken: tokens.token, rawNonce: tokens.nonce)
         return try await linkCredential(credential: credential)
     }
     
@@ -93,23 +93,19 @@ extension AuthenticationManager {
 // MARK: - Helpers
 extension AuthenticationManager {
     
-    public enum AuthenticationMethod {
-        case anon
-        case email
-        case google
-        case apple
+    public enum AuthenticationMethod: String {
+        case anon = "anonymous"
+        case email = "email"
+        case google = "google.com"
+        case apple = "apple.com"
     }
+
     
     public struct GoogleSignInResultModel {
         public let idToken: String
         public let accessToken: String
         public let name: String?
         public let email: String?
-    }
-    public enum AuthProviderOption: String {
-        case email = "password"
-        case google = "google.com"
-        case apple = "apple.com"
     }
 }
 
