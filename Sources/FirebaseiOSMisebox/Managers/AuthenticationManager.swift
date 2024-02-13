@@ -7,12 +7,14 @@ public class AuthenticationManager: ObservableObject {
     public struct FirebaseUser {
         public let uid: String
         public let email: String?
+        public let name: String? // Added name property
         public let photoUrl: String?
         public let isAnon: Bool
 
         public init(user: User) {
             self.uid = user.uid
             self.email = user.email
+            self.name = user.displayName // Assigning displayName to name
             self.photoUrl = user.photoURL?.absoluteString
             self.isAnon = user.isAnonymous
         }
