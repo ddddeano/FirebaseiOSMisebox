@@ -55,7 +55,7 @@ public class AuthenticationManager: ObservableObject {
 // MARK: - Account Processing
 
 extension AuthenticationManager {
-    
+    @discardableResult
     public func signInOrCreateWithEmail(email: String, password: String) async throws -> FirebaseUser {
         do {
             return try await signInUser(email: email, password: password)
@@ -71,7 +71,7 @@ extension AuthenticationManager {
 
 // MARK: - Account Creation
 extension AuthenticationManager {
-
+    @discardableResult
     public func createWithEmail(email: String, password: String) async throws -> FirebaseUser {
         let authResult = try await Auth.auth().createUser(withEmail: email, password: password)
         return FirebaseUser(user: authResult.user)
