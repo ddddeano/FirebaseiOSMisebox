@@ -56,9 +56,9 @@ public class AuthenticationManager: ObservableObject {
 
 extension AuthenticationManager {
     @discardableResult
-    public func signInOrCreateWithEmail(email: String, password: String) async throws -> FirebaseUser {
+    public func processWithEmail(email: String, password: String) async throws -> FirebaseUser {
         do {
-            return try await signInUser(email: email, password: password)
+            return try await signInWithEmail(email: email, password: password)
         } catch let error as NSError {
             if error.code == AuthErrorCode.userNotFound.rawValue {
                 return try await createWithEmail(email: email, password: password)
@@ -66,6 +66,12 @@ extension AuthenticationManager {
                 throw error
             }
         }
+    }
+    @discardableResult
+    public func processWithGoogle(tokens: GoogleSignInResultModel) async throws -> FirebaseUser {
+        let credential = GoogleAuthProvider.credential(withIDToken: tokens.idToken, accessToken: tokens.accessToken)
+        let authResult = try await Auth.auth().signIn(with: credential)
+        return FirebaseUser(user: authResult.user)
     }
 }
 
@@ -76,18 +82,11 @@ extension AuthenticationManager {
         let authResult = try await Auth.auth().createUser(withEmail: email, password: password)
         return FirebaseUser(user: authResult.user)
     }
-
-    @discardableResult
-    public func withGoogle(tokens: GoogleSignInResultModel) async throws -> FirebaseUser {
-        let credential = GoogleAuthProvider.credential(withIDToken: tokens.idToken, accessToken: tokens.accessToken)
-        let authResult = try await Auth.auth().signIn(with: credential)
-        return FirebaseUser(user: authResult.user)
-    }
 }
 
 // MARK: - Account Return
 extension AuthenticationManager {
-    public func signInUser(email: String, password: String) async throws -> FirebaseUser {
+    public func signInWithEmail(email: String, password: String) async throws -> FirebaseUser {
         let authResult = try await Auth.auth().signIn(withEmail: email, password: password)
         return FirebaseUser(user: authResult.user)
     }
@@ -131,7 +130,6 @@ extension AuthenticationManager {
         case apple = "apple.com"
     }
 
-    
     public struct GoogleSignInResultModel {
         public let idToken: String
         public let accessToken: String
