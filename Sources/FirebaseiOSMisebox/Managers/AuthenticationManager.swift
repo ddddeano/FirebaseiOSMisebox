@@ -133,10 +133,15 @@ extension AuthenticationManager {
 // MARK: - Helpers
 extension AuthenticationManager {
     
-    public enum UserIntent {
-        case newUser
-        case returningUser
+
+    public enum UserIntent: String, CaseIterable, Identifiable {
+        case newUser = "New User"
+        case returningUser = "Returning User"
+        
+        public var id: String { self.rawValue }
     }
+    
+
     
     public enum AuthenticationMethod: String {
         case anon = "anonymous"
