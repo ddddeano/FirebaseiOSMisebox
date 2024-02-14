@@ -56,34 +56,26 @@ public class AuthenticationManager: ObservableObject {
 
 // MARK: - Account Processing
 
+
 extension AuthenticationManager {
     @discardableResult
-    
     public func processWithEmail(email: String, password: String, intent: UserIntent) async throws -> FirebaseUser {
-        switch intent {
-        case .newUser:
-            do {
+        do {
+            switch intent {
+            case .newUser:
                 // Attempt to create a new user
                 return try await createWithEmail(email: email, password: password)
-            } catch let error as NSError {
-                // Check if the email is already in use
-                if error.code == AuthErrorCode.emailAlreadyInUse.rawValue {
-                    throw AuthenticationError.emailAlreadyInUse
-                } else {
-                    // Handle other Firebase Auth errors or rethrow
-                    throw handleFirebaseAuthError(error: error)
-                }
-            }
-        case .returningUser:
-            do {
+            case .returningUser:
                 // Attempt to sign in the user
                 return try await signInWithEmail(email: email, password: password)
-            } catch let error as NSError {
-                throw handleFirebaseAuthError(error: error)
             }
+        } catch let error as NSError {
+            // Directly use Firebase's error message for the user.
+            // This way, you're not handling custom errors but using Firebase's provided messages.
+            throw NSError(domain: error.domain, code: error.code, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
         }
     }
-
+    
     @discardableResult
     public func processWithGoogle(tokens: GoogleSignInResultModel) async throws -> FirebaseUser {
         let credential = GoogleAuthProvider.credential(withIDToken: tokens.idToken, accessToken: tokens.accessToken)
@@ -164,45 +156,4 @@ extension AuthenticationManager {
         public let name: String?
         public let email: String?
     }
-
 }
-// MARK: - Error Handling
-extension AuthenticationManager {
-    
-    public enum AuthenticationError: Error {
-        case userNotFound
-        case wrongPassword
-        case userDisabled
-        case emailAlreadyInUse
-        case unknownError(description: String)
-        
-        var localizedDescription: String {
-            switch self {
-            case .userNotFound:
-                return "No user found with this email."
-            case .wrongPassword:
-                return "Incorrect password. Please try again."
-            case .userDisabled:
-                return "This user has been disabled."
-            case .emailAlreadyInUse:
-                return "This email is already in use. Please sign in or use a different email to sign up."
-            case .unknownError(let description):
-                return description
-            }
-        }
-    }
-    private func handleFirebaseAuthError(error: NSError) -> AuthenticationError {
-        switch error.code {
-        case AuthErrorCode.userNotFound.rawValue:
-            return .userNotFound
-        case AuthErrorCode.wrongPassword.rawValue:
-            return .wrongPassword
-        case AuthErrorCode.userDisabled.rawValue:
-            return .userDisabled
-        // Add more cases as needed
-        default:
-            return .unknownError(description: error.localizedDescription)
-        }
-    }
-}
-
