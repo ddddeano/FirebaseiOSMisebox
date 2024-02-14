@@ -58,24 +58,31 @@ public class AuthenticationManager: ObservableObject {
 
 extension AuthenticationManager {
     @discardableResult
+    
     public func processWithEmail(email: String, password: String, intent: UserIntent) async throws -> FirebaseUser {
         switch intent {
         case .newUser:
-            return try await createWithEmail(email: email, password: password)
+            do {
+                // Attempt to create a new user
+                return try await createWithEmail(email: email, password: password)
+            } catch let error as NSError {
+                // Check if the email is already in use
+                if error.code == AuthErrorCode.emailAlreadyInUse.rawValue {
+                    throw AuthenticationError.emailAlreadyInUse
+                } else {
+                    // Handle other Firebase Auth errors or rethrow
+                    throw handleFirebaseAuthError(error: error)
+                }
+            }
         case .returningUser:
             do {
+                // Attempt to sign in the user
                 return try await signInWithEmail(email: email, password: password)
             } catch let error as NSError {
-                if error.code == AuthErrorCode.userNotFound.rawValue {
-                    // Enhance the thrown error with more context
-                    throw AuthenticationError.userNotFound
-                } else {
-                    // Re-throw any other error
-                    throw error
+                throw handleFirebaseAuthError(error: error)
             }
         }
     }
-}
 
     @discardableResult
     public func processWithGoogle(tokens: GoogleSignInResultModel) async throws -> FirebaseUser {
@@ -130,9 +137,12 @@ extension AuthenticationManager {
     }
 }
 
-// MARK: - Helpers
+// MARK: - Helper functions
 extension AuthenticationManager {
     
+}
+// MARK: - Helper Structures
+extension AuthenticationManager {
 
     public enum UserIntent: String, CaseIterable, Identifiable {
         case newUser = "New User"
@@ -140,8 +150,6 @@ extension AuthenticationManager {
         
         public var id: String { self.rawValue }
     }
-    
-
     
     public enum AuthenticationMethod: String {
         case anon = "anonymous"
@@ -157,25 +165,44 @@ extension AuthenticationManager {
         public let email: String?
     }
 
+}
+// MARK: - Error Handling
+extension AuthenticationManager {
+    
     public enum AuthenticationError: Error {
         case userNotFound
-        case invalidCredentials
-        case unknownError
-        case customError(String)
-
+        case wrongPassword
+        case userDisabled
+        case emailAlreadyInUse
+        case unknownError(description: String)
+        
         var localizedDescription: String {
             switch self {
             case .userNotFound:
-                return "User not found. Please sign up."
-            case .invalidCredentials:
-                return "Invalid credentials provided. Please try again."
-            case .unknownError:
-                return "An unknown error occurred."
-            case .customError(let message):
-                return message
+                return "No user found with this email."
+            case .wrongPassword:
+                return "Incorrect password. Please try again."
+            case .userDisabled:
+                return "This user has been disabled."
+            case .emailAlreadyInUse:
+                return "This email is already in use. Please sign in or use a different email to sign up."
+            case .unknownError(let description):
+                return description
             }
         }
     }
-
+    private func handleFirebaseAuthError(error: NSError) -> AuthenticationError {
+        switch error.code {
+        case AuthErrorCode.userNotFound.rawValue:
+            return .userNotFound
+        case AuthErrorCode.wrongPassword.rawValue:
+            return .wrongPassword
+        case AuthErrorCode.userDisabled.rawValue:
+            return .userDisabled
+        // Add more cases as needed
+        default:
+            return .unknownError(description: error.localizedDescription)
+        }
+    }
 }
 
