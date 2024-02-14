@@ -58,17 +58,25 @@ public class AuthenticationManager: ObservableObject {
 
 extension AuthenticationManager {
     @discardableResult
-    public func processWithEmail(email: String, password: String) async throws -> FirebaseUser {
-        do {
-            return try await signInWithEmail(email: email, password: password)
-        } catch let error as NSError {
-            if error.code == AuthErrorCode.userNotFound.rawValue {
-                return try await createWithEmail(email: email, password: password)
-            } else {
-                throw error
+    public func processWithEmail(email: String, password: String, intent: UserIntent) async throws -> FirebaseUser {
+        switch intent {
+        case .newUser:
+            return try await createWithEmail(email: email, password: password)
+        case .returningUser:
+            do {
+                return try await signInWithEmail(email: email, password: password)
+            } catch let error as NSError {
+                if error.code == AuthErrorCode.userNotFound.rawValue {
+                    // Enhance the thrown error with more context
+                    throw AuthenticationError.userNotFound
+                } else {
+                    // Re-throw any other error
+                    throw error
             }
         }
     }
+}
+
     @discardableResult
     public func processWithGoogle(tokens: GoogleSignInResultModel) async throws -> FirebaseUser {
         let credential = GoogleAuthProvider.credential(withIDToken: tokens.idToken, accessToken: tokens.accessToken)
@@ -125,6 +133,11 @@ extension AuthenticationManager {
 // MARK: - Helpers
 extension AuthenticationManager {
     
+    public enum UserIntent {
+        case newUser
+        case returningUser
+    }
+    
     public enum AuthenticationMethod: String {
         case anon = "anonymous"
         case email = "email"
@@ -138,5 +151,26 @@ extension AuthenticationManager {
         public let name: String?
         public let email: String?
     }
+
+    public enum AuthenticationError: Error {
+        case userNotFound
+        case invalidCredentials
+        case unknownError
+        case customError(String)
+
+        var localizedDescription: String {
+            switch self {
+            case .userNotFound:
+                return "User not found. Please sign up."
+            case .invalidCredentials:
+                return "Invalid credentials provided. Please try again."
+            case .unknownError:
+                return "An unknown error occurred."
+            case .customError(let message):
+                return message
+            }
+        }
+    }
+
 }
 
