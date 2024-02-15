@@ -33,7 +33,7 @@ public class FirestoreManager {
               return nil
           }
       }
-    
+    @discardableResult
     public func updateDocument<T: FirestoreEntity>(for entity: T, merge: Bool = true) async -> Result<Void, Error> {
         let docRef = documentReference(forCollection: entity.collection, documentID: entity.id)
         let updateData = entity.toFirestore()
@@ -46,8 +46,6 @@ public class FirestoreManager {
             return .failure(error)
         }
     }
-
-
 
     public func updateDocumentData<T: FirestoreEntity, U: Updatable>(for entity: T, with updateData: U, merge: Bool = true) async throws {
         let docRef = documentReference(forCollection: entity.collection, documentID: entity.id)
