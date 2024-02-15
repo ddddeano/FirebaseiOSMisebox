@@ -33,6 +33,7 @@ public class FirestoreManager {
               return nil
           }
       }
+    
     public func updateDocument<T: FirestoreEntity>(for entity: T, merge: Bool = true) async throws {
         let docRef = documentReference(forCollection: entity.collection, documentID: entity.id)
         let updateData = entity.toFirestore()

@@ -23,7 +23,7 @@ public class FirestoreUpdateManager {
         return db.collection(collection).document(documentID)
     }
     
-    public func updateDocument<T: FirestoreEntity, U: Updatable>(for entity: T, with updateData: U, merge: Bool = true) async throws {
+    /*public func updateDocument<T: FirestoreEntity, U: Updatable>(for entity: T, with updateData: U, merge: Bool = true) async throws {
         let docRef = documentReference(forCollection: entity.collection, documentID: entity.id)
         let data = updateData.toFirestore()
         
@@ -33,7 +33,7 @@ public class FirestoreUpdateManager {
             print("FirestoreUpdateManager[updateDocument] Error updating document: \(error.localizedDescription)")
             throw error
         }
-    }
+    }*/
     
     public func updateDocumentSection(collection: String, documentID: String, section: String, updateData: [String: Any]) async throws {
         let docRef = db.collection(collection).document(documentID)
