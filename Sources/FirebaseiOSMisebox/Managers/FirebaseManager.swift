@@ -34,17 +34,19 @@ public class FirestoreManager {
           }
       }
     
-    public func updateDocument<T: FirestoreEntity>(for entity: T, merge: Bool = true) async throws {
+    public func updateDocument<T: FirestoreEntity>(for entity: T, merge: Bool = true) async -> Result<Void, Error> {
         let docRef = documentReference(forCollection: entity.collection, documentID: entity.id)
         let updateData = entity.toFirestore()
         
         do {
             try await docRef.setData(updateData, merge: merge)
+            return .success(())
         } catch let error {
             print("FirestoreManager[updateDocument] Error updating document: \(error.localizedDescription)")
-            throw error
+            return .failure(error)
         }
     }
+
 
 
     public func updateDocumentData<T: FirestoreEntity, U: Updatable>(for entity: T, with updateData: U, merge: Bool = true) async throws {
