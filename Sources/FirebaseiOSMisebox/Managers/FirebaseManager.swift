@@ -33,6 +33,30 @@ public class FirestoreManager {
               return nil
           }
       }
+    public func updateDocument<T: FirestoreEntity>(for entity: T, merge: Bool = true) async throws {
+        let docRef = documentReference(forCollection: entity.collection, documentID: entity.id)
+        let updateData = entity.toFirestore()
+        
+        do {
+            try await docRef.setData(updateData, merge: merge)
+        } catch let error {
+            print("FirestoreManager[updateDocument] Error updating document: \(error.localizedDescription)")
+            throw error
+        }
+    }
+
+
+    public func updateDocumentData<T: FirestoreEntity, U: Updatable>(for entity: T, with updateData: U, merge: Bool = true) async throws {
+        let docRef = documentReference(forCollection: entity.collection, documentID: entity.id)
+        let data = updateData.toFirestore()
+        
+        do {
+            try await docRef.setData(data, merge: merge)
+        } catch let error {
+            print("FirestoreUpdateManager[updateDocument] Error updating document: \(error.localizedDescription)")
+            throw error
+        }
+    }
     
     public func checkDocumentExists(collection: String, documentID: String) async throws -> Bool {
         let docRef = db.collection(collection).document(documentID)
@@ -50,10 +74,10 @@ public class FirestoreManager {
         }
     }
     
-    public func setDoc<T: FirestoreEntity>(entity: T, merge: Bool = false) async throws {
+    public func setDoc<T: FirestoreEntity>(entity: T) async throws {
         let docRef = db.collection(entity.collection).document(entity.id)
         print("Document Reference: \(docRef.path)")
-        try await docRef.setData(entity.toFirestore(), merge: merge)
+        try await docRef.setData(entity.toFirestore())
     }
     
     
