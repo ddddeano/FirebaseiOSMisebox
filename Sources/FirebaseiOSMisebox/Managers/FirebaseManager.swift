@@ -23,7 +23,7 @@ public class FirestoreManager {
          return db.collection(collection).document(documentID)
      }
      
-    func fetchDocument<T: FirestoreEntity>(for entity: T) async throws -> T? {
+    public func fetchDocument<T: FirestoreEntity>(for entity: T) async throws -> T? {
           let docRef = documentReference(forCollection: entity.collection, documentID: entity.id)
           let documentSnapshot = try await docRef.getDocument()
           
