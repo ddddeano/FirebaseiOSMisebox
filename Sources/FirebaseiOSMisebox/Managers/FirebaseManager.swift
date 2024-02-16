@@ -23,6 +23,22 @@ public class FirestoreManager {
          return db.collection(collection).document(documentID)
      }
      
+    public func fetchDataDocument<T: FirestoreDataProtocol>(collection: String, documentID: String, completion: @escaping (Result<T, Error>) -> Void) {
+          let docRef = db.collection(collection).document(documentID)
+          docRef.getDocument { documentSnapshot, error in
+              if let error = error {
+                  completion(.failure(error))
+                  return
+              }
+              guard let documentSnapshot = documentSnapshot,
+                    let dataModel = T(documentSnapshot: documentSnapshot) else {
+                  completion(.failure(FirestoreError.documentNotFound))
+                  return
+              }
+              completion(.success(dataModel))
+          }
+      }
+  
     public func fetchDocument<T: FirestoreEntity>(for entity: T) async throws -> T? {
           let docRef = documentReference(forCollection: entity.collection, documentID: entity.id)
           let documentSnapshot = try await docRef.getDocument()
@@ -183,6 +199,10 @@ public class FirestoreManager {
             return urls
         }
     }
+}
+public protocol FirestoreDataProtocol {
+    init?(documentSnapshot: DocumentSnapshot)
+    func update(with data: [String: Any])
 }
 
 public protocol FirestoreEntity {
