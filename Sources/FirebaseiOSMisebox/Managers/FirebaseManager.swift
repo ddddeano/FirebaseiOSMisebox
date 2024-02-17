@@ -97,6 +97,11 @@ public class FirestoreManager {
         try await docRef.setData(entity.toFirestore())
     }
     
+    public func isFieldValueUnique(inCollection collection: String, fieldName: String, fieldValue: String) async throws -> Bool {
+          let querySnapshot = try await db.collection(collection).whereField(fieldName, isEqualTo: fieldValue).getDocuments()
+          // If the query returns no documents, the field value is unique
+          return querySnapshot.documents.isEmpty
+      }
     
     /*@discardableResult
     public func createFeedEntry<T: Postable>(entry: T) async throws -> String {
