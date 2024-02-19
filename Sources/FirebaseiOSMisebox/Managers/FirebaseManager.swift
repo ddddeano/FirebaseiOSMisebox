@@ -75,6 +75,20 @@ public class FirestoreManager {
         }
     }
     
+    public func updateDocumentField(collection: String, documentID: String, data: [String: Any], merge: Bool = true) async -> Result<Void, Error> {
+            let docRef = db.collection(collection).document(documentID)
+            
+            do {
+                try await docRef.setData(data, merge: merge)
+                print("[FirestoreManager] Document successfully updated.")
+                return .success(())
+            } catch let error {
+                print("[FirestoreManager] Error updating document: \(error.localizedDescription)")
+                return .failure(error)
+            }
+        }
+    
+    
     public func checkDocumentExists(collection: String, documentID: String) async throws -> Bool {
         let docRef = db.collection(collection).document(documentID)
         let documentSnapshot = try await docRef.getDocument()
