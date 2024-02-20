@@ -104,7 +104,17 @@ public class FirestoreManager {
             throw error // Re-throw the error to be handled by the caller
         }
     }
-    
+    // simple version, eg for posts
+    public func addDocument(toCollection collection: String, withData data: [String: Any]) async throws -> DocumentReference {
+          do {
+              let documentReference = try await db.collection(collection).addDocument(data: data)
+              print("Document added with ID: \(documentReference.documentID)")
+              return documentReference
+          } catch let error {
+              print("Error adding document: \(error.localizedDescription)")
+              throw error
+          }
+      }
     public func setDoc<T: FirestoreEntity>(entity: T) async throws {
         let docRef = db.collection(entity.collection).document(entity.id)
         print("Document Reference: \(docRef.path)")
