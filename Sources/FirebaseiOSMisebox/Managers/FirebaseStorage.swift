@@ -8,7 +8,7 @@
 import FirebaseStorage
 import SwiftUI
 
-class FirebaseStorageManager {
+public class FirebaseStorageManager {
     static let shared = FirebaseStorageManager()
 
     private init() {}
