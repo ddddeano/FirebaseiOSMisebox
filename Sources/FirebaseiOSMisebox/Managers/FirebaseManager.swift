@@ -74,7 +74,7 @@ public class FirestoreManager {
             throw error
         }
     }
-    
+    @discardableResult
     public func updateDocumentField(collection: String, documentID: String, data: [String: Any], merge: Bool = true) async -> Result<Void, Error> {
             let docRef = db.collection(collection).document(documentID)
             
