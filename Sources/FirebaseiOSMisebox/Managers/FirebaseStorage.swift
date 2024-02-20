@@ -13,7 +13,7 @@ public class FirebaseStorageManager {
 
     private init() {}
 
-    func uploadImage(imageData: Data, inDirectory directory: String, completion: @escaping (Result<String, Error>) -> Void) async {
+    public func uploadImage(imageData: Data, inDirectory directory: String, completion: @escaping (Result<String, Error>) -> Void) async {
         let uid = generateShortUID(length: 6)
         let fileName = "\(uid).jpg"
         let storageRef = Storage.storage().reference()
