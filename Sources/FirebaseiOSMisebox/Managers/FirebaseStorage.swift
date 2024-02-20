@@ -9,11 +9,11 @@ import FirebaseStorage
 import SwiftUI
 
 public class FirebaseStorageManager {
-    static let shared = FirebaseStorageManager()
+    public static let shared = FirebaseStorageManager() // Make shared public
 
-    private init() {}
+    private init() {} // Keep the initializer private to prevent external instantiation
 
-    public func uploadImage(imageData: Data, inDirectory directory: String, completion: @escaping (Result<String, Error>) -> Void) async {
+    public func uploadImage(imageData: Data, inDirectory directory: String) async throws -> String {
         let uid = generateShortUID(length: 6)
         let fileName = "\(uid).jpg"
         let storageRef = Storage.storage().reference()
@@ -26,9 +26,9 @@ public class FirebaseStorageManager {
         do {
             _ = try await imageRef.putDataAsync(imageData, metadata: metadata)
             let downloadURL = try await imageRef.downloadURL()
-            completion(.success(downloadURL.absoluteString))
+            return downloadURL.absoluteString
         } catch {
-            completion(.failure(error))
+            throw error
         }
     }
 
