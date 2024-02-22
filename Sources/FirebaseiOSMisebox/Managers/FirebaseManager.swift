@@ -203,22 +203,22 @@ public class FirestoreManager {
         }
     }
     
-    public func listenToPosts<T: FeedPost>(forRole role: String, completion: @escaping (Result<[T], Error>) -> Void) -> ListenerRegistration {
-        let collectionRef = db.collection("posts").whereField("role", isEqualTo: role)
+    func listenToPosts<T: FeedPost>(forRoles roles: [String], completion: @escaping (Result<[T], Error>) -> Void) -> ListenerRegistration {
+        let query = db.collection("posts").whereField("roleDoc", in: roles)
         
-        return collectionRef.addSnapshotListener { querySnapshot, error in
+        return query.addSnapshotListener { querySnapshot, error in
             if let error = error {
                 completion(.failure(error))
                 return
             }
-            guard let documents = querySnapshot?.documents else {
-                completion(.failure(NSError(domain: "FirestoreManager", code: -1001, userInfo: [NSLocalizedDescriptionKey: "Invalid snapshot"])))
-                return
-            }
-            let posts: [T] = documents.compactMap { doc in T(document: doc) }
+            
+            let posts: [T] = querySnapshot?.documents.compactMap { documentSnapshot in
+                T(document: documentSnapshot)
+            } ?? []
             completion(.success(posts))
         }
     }
+
     
     public func fetchBucket(bucket: String) async throws -> [String] {
         let storage = Storage.storage()
@@ -246,9 +246,11 @@ public class FirestoreManager {
     }
 }
 
-public protocol FeedPost: Identifiable {
+protocol FeedPost: Identifiable {
     init?(document: DocumentSnapshot)
+    func toFirestore() -> [String: Any]
 }
+
 public protocol FirestoreDataProtocol {
     init?(documentSnapshot: DocumentSnapshot)
     func update(with data: [String: Any])
