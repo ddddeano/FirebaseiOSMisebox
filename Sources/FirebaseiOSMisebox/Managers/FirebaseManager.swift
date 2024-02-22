@@ -172,20 +172,6 @@ public class FirestoreManager {
             }
         }
     }
-
-    Protocol FeedPost {
-        
-    }
-    
-    public func listenToPosts(availableRoles [String] completion: @escaping (Result<[FeedPost], Error>) -> Void) -> ListenerRegistration {
-        let collectionRef = db.collection("posts")
-        query
-        
-        return collectionRef.addSnapshotListener { querySnapshot, error in
-            if let error = error {
-           
-        }
-    }
     
     public func addCollectionListener<T: FirestoreEntity>(collection: String, completion: @escaping (Result<[T], Error>) -> Void) -> ListenerRegistration {
         let collectionRef = db.collection(collection)
@@ -255,13 +241,6 @@ public protocol FirestoreEntity {
     func toFirestore() -> [String: Any]
 }
 
-Protocol FeedPost {
-    
-}
-
-protocol PostFetcher {
-    func fetchPostsFilteredByRoles(visibleRoles: [String], completion: @escaping (Result<[FeedManager.Post], Error>) -> Void)
-}
 public protocol Listenable: FirestoreEntity {
     mutating func update(with data: [String: Any])
 }
