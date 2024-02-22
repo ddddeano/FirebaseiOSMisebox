@@ -6,11 +6,9 @@
 //
 
 import Foundation
-import Combine
 import Firebase
 import FirebaseStorage
 import FirebaseFirestore
-import MiseboxiOSFeed
 
 public class FirestoreManager {
     private let db = Firestore.firestore()
@@ -88,26 +86,7 @@ public class FirestoreManager {
                 return .failure(error)
             }
         }
-    public func fetchPostsFilteredByRoles(visibleRoles: [String], completion: @escaping (Result<[FeedManager.Post], Error>) -> Void) {
-        let query = db.collection("posts").whereField("roleDoc", in: visibleRoles)
-
-        query.getDocuments { (querySnapshot, error) in
-            if let error = error {
-                completion(.failure(error))
-                return
-            }
-
-            guard let documents = querySnapshot?.documents else {
-                completion(.failure(FirestoreError.invalidSnapshot))
-                return
-            }
-
-            let posts: [Post] = documents.compactMap { document -> Post? in
-                try? document.data(as: Post.self)
-            }
-            completion(.success(posts))
-        }
-    }
+  
 
     public func checkDocumentExists(collection: String, documentID: String) async throws -> Bool {
         let docRef = db.collection(collection).document(documentID)
@@ -194,6 +173,19 @@ public class FirestoreManager {
         }
     }
 
+    Protocol FeedPost {
+        
+    }
+    
+    public func listenToPosts(availableRoles [String] completion: @escaping (Result<[FeedPost], Error>) -> Void) -> ListenerRegistration {
+        let collectionRef = db.collection("posts")
+        query
+        
+        return collectionRef.addSnapshotListener { querySnapshot, error in
+            if let error = error {
+           
+        }
+    }
     
     public func addCollectionListener<T: FirestoreEntity>(collection: String, completion: @escaping (Result<[T], Error>) -> Void) -> ListenerRegistration {
         let collectionRef = db.collection(collection)
@@ -263,6 +255,13 @@ public protocol FirestoreEntity {
     func toFirestore() -> [String: Any]
 }
 
+Protocol FeedPost {
+    
+}
+
+protocol PostFetcher {
+    func fetchPostsFilteredByRoles(visibleRoles: [String], completion: @escaping (Result<[FeedManager.Post], Error>) -> Void)
+}
 public protocol Listenable: FirestoreEntity {
     mutating func update(with data: [String: Any])
 }

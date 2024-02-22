@@ -8,7 +8,6 @@
 import Foundation
 import SwiftUI
 import AuthenticationServices
-import GlobalMiseboxiOS
 import CryptoKit
 
 

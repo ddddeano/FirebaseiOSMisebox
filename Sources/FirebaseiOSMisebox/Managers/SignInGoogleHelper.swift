@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import GlobalMiseboxiOS
 import GoogleSignIn
 import GoogleSignInSwift
 
