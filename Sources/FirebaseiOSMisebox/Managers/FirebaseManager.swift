@@ -204,20 +204,44 @@ public class FirestoreManager {
     }
     
     public func listenToPosts<T: FeedPost>(forRoles roles: [String], completion: @escaping (Result<[T], Error>) -> Void) -> ListenerRegistration {
+        // Print the roles we're querying for, for debugging purposes
+        print("Listening to posts for roles: \(roles)")
+        
         let query = db.collection("posts").whereField("role", in: roles)
         
         return query.addSnapshotListener { querySnapshot, error in
+            // Debugging: Check if there's an error
             if let error = error {
+                print("Error fetching posts: \(error.localizedDescription)")
                 completion(.failure(error))
                 return
             }
             
-            let posts: [T] = querySnapshot?.documents.compactMap { documentSnapshot in
-                T(document: documentSnapshot)
-            } ?? []
+            // Debugging: Check the snapshot state
+            guard let snapshot = querySnapshot else {
+                print("Snapshot is nil. There might be a problem with the query or Firestore permissions.")
+                completion(.failure(NSError(domain: "FeedManager", code: -1, userInfo: [NSLocalizedDescriptionKey: "Snapshot is nil."])))
+                return
+            }
+            
+            // Debugging: Print the number of documents fetched
+            print("Fetched \(snapshot.documents.count) documents for roles: \(roles)")
+            
+            let posts: [T] = snapshot.documents.compactMap { documentSnapshot in
+                // Debugging: Print each document id fetched
+                print("Processing document with id: \(documentSnapshot.documentID)")
+                return T(document: documentSnapshot)
+            }
+            
+            // Debugging: Check if posts are successfully mapped
+            if posts.isEmpty && !snapshot.documents.isEmpty {
+                print("Posts are empty after mapping, but documents were fetched. Check the FeedPost initializer.")
+            }
+            
             completion(.success(posts))
         }
     }
+
 
     
     public func fetchBucket(bucket: String) async throws -> [String] {
