@@ -203,6 +203,23 @@ public class FirestoreManager {
         }
     }
     
+    public func listenToPosts<T: FeedPost>(forRole role: String, completion: @escaping (Result<[T], Error>) -> Void) -> ListenerRegistration {
+        let collectionRef = db.collection("posts").whereField("role", isEqualTo: role)
+        
+        return collectionRef.addSnapshotListener { querySnapshot, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            guard let documents = querySnapshot?.documents else {
+                completion(.failure(NSError(domain: "FirestoreManager", code: -1001, userInfo: [NSLocalizedDescriptionKey: "Invalid snapshot"])))
+                return
+            }
+            let posts: [T] = documents.compactMap { doc in T(document: doc) }
+            completion(.success(posts))
+        }
+    }
+    
     public func fetchBucket(bucket: String) async throws -> [String] {
         let storage = Storage.storage()
         let storageReference = storage.reference().child(bucket) // Adjust the path as necessary
@@ -227,6 +244,10 @@ public class FirestoreManager {
             return urls
         }
     }
+}
+
+public protocol FeedPost: Identifiable {
+    init?(document: DocumentSnapshot)
 }
 public protocol FirestoreDataProtocol {
     init?(documentSnapshot: DocumentSnapshot)
