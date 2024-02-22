@@ -203,7 +203,7 @@ public class FirestoreManager {
         }
     }
     
-    func listenToPosts<T: FeedPost>(forRoles roles: [String], completion: @escaping (Result<[T], Error>) -> Void) -> ListenerRegistration {
+    public func listenToPosts<T: FeedPost>(forRoles roles: [String], completion: @escaping (Result<[T], Error>) -> Void) -> ListenerRegistration {
         let query = db.collection("posts").whereField("roleDoc", in: roles)
         
         return query.addSnapshotListener { querySnapshot, error in
