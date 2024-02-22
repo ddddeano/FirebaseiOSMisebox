@@ -87,8 +87,27 @@ public class FirestoreManager {
                 return .failure(error)
             }
         }
-    
-    
+    public func fetchPostsFilteredByRoles(visibleRoles: [String], completion: @escaping (Result<[Post], Error>) -> Void) {
+        let query = db.collection("posts").whereField("roleDoc", in: visibleRoles)
+
+        query.getDocuments { (querySnapshot, error) in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+
+            guard let documents = querySnapshot?.documents else {
+                completion(.failure(FirestoreError.invalidSnapshot))
+                return
+            }
+
+            let posts: [Post] = documents.compactMap { document -> Post? in
+                try? document.data(as: Post.self)
+            }
+            completion(.success(posts))
+        }
+    }
+
     public func checkDocumentExists(collection: String, documentID: String) async throws -> Bool {
         let docRef = db.collection(collection).document(documentID)
         let documentSnapshot = try await docRef.getDocument()
@@ -105,6 +124,7 @@ public class FirestoreManager {
         }
     }
     // simple version, eg for posts
+    @discardableResult
     public func addDocument(toCollection collection: String, withData data: [String: Any]) async throws -> DocumentReference {
           do {
               let documentReference = try await db.collection(collection).addDocument(data: data)
