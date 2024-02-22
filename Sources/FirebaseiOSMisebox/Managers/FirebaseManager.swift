@@ -246,7 +246,7 @@ public class FirestoreManager {
     }
 }
 
-protocol FeedPost: Identifiable {
+public protocol FeedPost: Identifiable {
     init?(document: DocumentSnapshot)
     func toFirestore() -> [String: Any]
 }
