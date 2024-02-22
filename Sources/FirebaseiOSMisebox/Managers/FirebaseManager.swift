@@ -10,6 +10,7 @@ import Combine
 import Firebase
 import FirebaseStorage
 import FirebaseFirestore
+import MiseboxiOSFeed
 
 public class FirestoreManager {
     private let db = Firestore.firestore()
@@ -87,7 +88,7 @@ public class FirestoreManager {
                 return .failure(error)
             }
         }
-    public func fetchPostsFilteredByRoles(visibleRoles: [String], completion: @escaping (Result<[Post], Error>) -> Void) {
+    public func fetchPostsFilteredByRoles(visibleRoles: [String], completion: @escaping (Result<[FeedManager.Post], Error>) -> Void) {
         let query = db.collection("posts").whereField("roleDoc", in: visibleRoles)
 
         query.getDocuments { (querySnapshot, error) in
