@@ -21,6 +21,10 @@ public class AuthenticationManager: ObservableObject {
     }
     
     @Published public var authError: Error?
+    enum CustomError: Error {
+        case credentialAlreadyInUse
+        // Add other custom error cases as needed
+    }
     
     public init() {}
     
@@ -58,46 +62,70 @@ public class AuthenticationManager: ObservableObject {
 
 extension AuthenticationManager {
     @discardableResult
-    public func processWithEmail(email: String, password: String, intent: UserIntent) async throws -> FirebaseUser {
-        let credential = EmailAuthProvider.credential(withEmail: email, password: password)
-        
-        if let currentUser = Auth.auth().currentUser, currentUser.isAnonymous {
-            return try await linkCredential(credential: credential)
-        } else {
-            switch intent {
-            case .newUser:
-                return try await createWithEmail(email: email, password: password)
-            case .returningUser:
-                return try await signInWithEmail(email: email, password: password)
-            }
-        }
-    }
+       public func processWithEmail(email: String, password: String, intent: UserIntent) async throws -> FirebaseUser {
+           let credential = EmailAuthProvider.credential(withEmail: email, password: password)
+           
+           if let currentUser = Auth.auth().currentUser, currentUser.isAnonymous {
+               return try await linkCredential(credential: credential)
+           } else {
+               switch intent {
+               case .newUser:
+                   return try await createWithEmail(email: email, password: password)
+               case .returningUser:
+                   do {
+                       return try await signInWithEmail(email: email, password: password)
+                   } catch CustomError.credentialAlreadyInUse {
+                       // If signing in fails because the credential is already in use, attempt to sign in directly.
+                       print("Credential already in use with a different account. Attempting to sign in directly.")
+                       return try await signIn(credential: credential)
+                   }
+               }
+           }
+       }
 
     
     @discardableResult
     public func processWithGoogle(tokens: GoogleSignInResultModel) async throws -> FirebaseUser {
         let credential = GoogleAuthProvider.credential(withIDToken: tokens.idToken, accessToken: tokens.accessToken)
         
-        if let currentUser = Auth.auth().currentUser, currentUser.isAnonymous {
-            return try await linkCredential(credential: credential)
-        } else {
+        do {
+            if let currentUser = Auth.auth().currentUser, currentUser.isAnonymous {
+                // Attempt to link the credential with the current anonymous user.
+                return try await linkCredential(credential: credential)
+            } else {
+                // No anonymous user to link, proceed to sign in directly.
+                return try await signIn(credential: credential)
+            }
+        } catch CustomError.credentialAlreadyInUse {
+            // If linking fails because the credential is already in use, attempt to sign in directly.
+            print("Credential already in use with a different account. Attempting to sign in directly.")
             return try await signIn(credential: credential)
+        } catch {
+            // Handle any other errors that might occur.
+            throw error
         }
     }
+
 
      
     @discardableResult
     public func processWithApple(tokens: SignInWithAppleResult) async throws -> FirebaseUser {
         let credential = OAuthProvider.credential(withProviderID: AuthenticationMethod.apple.rawValue, idToken: tokens.token, rawNonce: tokens.nonce)
         
-        if let currentUser = Auth.auth().currentUser, currentUser.isAnonymous {
-            return try await linkCredential(credential: credential)
-        } else {
+        do {
+            if let currentUser = Auth.auth().currentUser, currentUser.isAnonymous {
+                return try await linkCredential(credential: credential)
+            } else {
+                return try await signIn(credential: credential)
+            }
+        } catch CustomError.credentialAlreadyInUse {
+            // If signing in fails because the credential is already in use, attempt to sign in directly.
+            print("Credential already in use with a different account. Attempting to sign in directly.")
             return try await signIn(credential: credential)
         }
     }
 
-     
+
      public func signIn(credential: AuthCredential) async throws -> FirebaseUser {
          let authDataResult = try await Auth.auth().signIn(with: credential)
          return FirebaseUser(user: authDataResult.user)
@@ -141,12 +169,24 @@ extension AuthenticationManager {
     
     private func linkCredential(credential: AuthCredential) async throws -> FirebaseUser {
         guard let user = Auth.auth().currentUser else {
-            throw URLError(.badURL)
+            throw URLError(.badURL) // It might be better to define your own error type for clarity.
         }
         
-        let authDataResult = try await user.link(with: credential)
-        return FirebaseUser(user: authDataResult.user)
+        do {
+            let authDataResult = try await user.link(with: credential)
+            return FirebaseUser(user: authDataResult.user)
+        } catch let error as NSError {
+            // Check if the error is due to the credential already being associated with a different account.
+            if error.code == AuthErrorCode.credentialAlreadyInUse.rawValue {
+                // Handle the specific error, e.g., informing the user or initiating account recovery/merge.
+                throw CustomError.credentialAlreadyInUse // Define CustomError to include this case.
+            } else {
+                // Re-throw the error if it's not the specific case we're looking for.
+                throw error
+            }
+        }
     }
+
 }
 
 // MARK: - Helper functions
