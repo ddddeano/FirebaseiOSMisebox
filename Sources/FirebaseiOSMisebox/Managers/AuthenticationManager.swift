@@ -59,31 +59,44 @@ public class AuthenticationManager: ObservableObject {
 extension AuthenticationManager {
     @discardableResult
     public func processWithEmail(email: String, password: String, intent: UserIntent) async throws -> FirebaseUser {
-        do {
+        let credential = EmailAuthProvider.credential(withEmail: email, password: password)
+        
+        if let currentUser = Auth.auth().currentUser, currentUser.isAnonymous {
+            return try await linkCredential(credential: credential)
+        } else {
             switch intent {
             case .newUser:
                 return try await createWithEmail(email: email, password: password)
             case .returningUser:
                 return try await signInWithEmail(email: email, password: password)
             }
-        } catch let error as NSError {
-            // Directly use Firebase's error message for the user.
-            // This way, you're not handling custom errors but using Firebase's provided messages.
-            throw NSError(domain: error.domain, code: error.code, userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
         }
     }
+
     
     @discardableResult
     public func processWithGoogle(tokens: GoogleSignInResultModel) async throws -> FirebaseUser {
-         let credential = GoogleAuthProvider.credential(withIDToken: tokens.idToken, accessToken: tokens.accessToken)
-         return try await signIn(credential: credential)
-     }
+        let credential = GoogleAuthProvider.credential(withIDToken: tokens.idToken, accessToken: tokens.accessToken)
+        
+        if let currentUser = Auth.auth().currentUser, currentUser.isAnonymous {
+            return try await linkCredential(credential: credential)
+        } else {
+            return try await signIn(credential: credential)
+        }
+    }
+
      
-     @discardableResult
-     public func processWithApple(tokens: SignInWithAppleResult) async throws -> FirebaseUser {
-         let credential = OAuthProvider.credential(withProviderID: AuthenticationMethod.apple.rawValue, idToken: tokens.token, rawNonce: tokens.nonce)
-         return try await signIn(credential: credential)
-     }
+    @discardableResult
+    public func processWithApple(tokens: SignInWithAppleResult) async throws -> FirebaseUser {
+        let credential = OAuthProvider.credential(withProviderID: AuthenticationMethod.apple.rawValue, idToken: tokens.token, rawNonce: tokens.nonce)
+        
+        if let currentUser = Auth.auth().currentUser, currentUser.isAnonymous {
+            return try await linkCredential(credential: credential)
+        } else {
+            return try await signIn(credential: credential)
+        }
+    }
+
      
      public func signIn(credential: AuthCredential) async throws -> FirebaseUser {
          let authDataResult = try await Auth.auth().signIn(with: credential)
