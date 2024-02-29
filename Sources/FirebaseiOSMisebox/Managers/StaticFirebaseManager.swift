@@ -21,7 +21,23 @@ public class StaticFirestoreManager {
         let documentRef = documentReference(forCollection: collection, documentID: documentID)
         return try await documentRef.getDocument()
     }
-    
+    public static func checkUserRole(collection: String, documentID: String, role: String, completion: @escaping (Bool, Error?) -> Void) {
+        let documentRef = db.collection(collection).document(documentID)
+        
+        documentRef.getDocument { (document, error) in
+            if let error = error {
+                // Handle the error
+                completion(false, error)
+            } else if let document = document, document.exists, let roles = document.data()?["roles"] as? [String] {
+                // Check if the user has the specified role
+                let hasRole = roles.contains(role)
+                completion(hasRole, nil)
+            } else {
+                // Handle the case where the document does not exist or does not have the roles field
+                completion(false, FirestoreError.documentNotFound)
+            }
+        }
+    }
     public static func getFieldData<T>(collection: String, documentID: String, fieldName: String) async throws -> T? {
         let snapshot = try await getDocumentSnapshot(collection: collection, documentID: documentID)
         return snapshot.data()?[fieldName] as? T
