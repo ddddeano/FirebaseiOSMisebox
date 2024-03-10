@@ -7,16 +7,18 @@ public class AuthenticationManager: ObservableObject {
     public struct FirebaseUser {
         public let uid: String
         public let email: String?
-        public let name: String? // Added name property
+        public let name: String?
         public let photoUrl: String?
         public let isAnon: Bool
-
+        public let provider: AuthenticationMethod // Updated property for provider
+        
         public init(user: User) {
             self.uid = user.uid
             self.email = user.email
-            self.name = user.displayName // Assigning displayName to name
+            self.name = user.displayName
             self.photoUrl = user.photoURL?.absoluteString
             self.isAnon = user.isAnonymous
+            self.provider = AuthenticationMethod(rawValue: user.providerID)
         }
     }
     
@@ -208,7 +210,25 @@ extension AuthenticationManager {
         case email = "email"
         case google = "google.com"
         case apple = "apple.com"
+        case unknown
+        
+        public init(rawValue: String) {
+            switch rawValue {
+            case AuthenticationMethod.anon.rawValue:
+                self = .anon
+            case AuthenticationMethod.email.rawValue:
+                self = .email
+            case AuthenticationMethod.google.rawValue:
+                self = .google
+            case AuthenticationMethod.apple.rawValue:
+                self = .apple
+            default:
+                self = .unknown
+            }
+        }
     }
+
+
 
     public struct GoogleSignInResultModel {
         public let idToken: String
