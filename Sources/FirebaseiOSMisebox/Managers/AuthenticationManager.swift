@@ -17,22 +17,32 @@ public class AuthenticationManager: ObservableObject {
             self.uid = user.uid
             self.email = user.email
             
+            print("User UID: \(uid)")
+            print("User Email: \(email ?? "No email provided")")
+            
             if let displayName = user.displayName {
-                print("Display Name Components: \(displayName)")
+                print("User Display Name: \(displayName)")
                 let nameComponents = displayName.components(separatedBy: " ")
                 self.firstName = nameComponents.first ?? ""
                 self.lastName = nameComponents.last ?? ""
+                print("First Name: \(firstName)")
+                print("Last Name: \(lastName)")
             } else {
                 self.firstName = ""
                 self.lastName = ""
             }
-
+            
             self.photoUrl = user.photoURL?.absoluteString
+            print("Photo URL: \(photoUrl ?? "No photo URL provided")")
+            
             self.isAnon = user.isAnonymous
+            print("Is Anonymous: \(isAnon)")
+            
             self.provider = AuthenticationMethod(rawValue: user.providerID)
+            print("Provider: \(provider)")
         }
-
     }
+
 
     @Published public var authError: Error?
     enum CustomError: Error {
