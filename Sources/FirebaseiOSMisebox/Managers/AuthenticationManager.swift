@@ -4,45 +4,42 @@ import FirebaseAuth
 
 public class AuthenticationManager: ObservableObject {
     
-    public struct FirebaseUser {
-        public let uid: String
-        public let email: String?
-        public let firstName: String
-        public let lastName: String
-        public let photoUrl: String?
-        public let isAnon: Bool
-        public let provider: AuthenticationMethod
         
-        public init(user: User) {
-            self.uid = user.uid
-            self.email = user.email
-            
-            if let displayName = user.displayName {
-                let nameComponents = displayName.components(separatedBy: " ")
-                self.firstName = nameComponents.first ?? ""
-                self.lastName = nameComponents.last ?? ""
-            } else {
-                self.firstName = ""
-                self.lastName = ""
+        
+        public struct FirebaseUser {
+            public let uid: String
+            public let email: String?
+            public let firstName: String
+            public let lastName: String
+            public let photoUrl: String?
+            public let isAnon: Bool
+            public var provider: AuthenticationMethod = .unknown
+
+            public init(user: User) {
+                self.uid = user.uid
+                self.email = user.email
+                
+                if let displayName = user.displayName {
+                    let nameComponents = displayName.components(separatedBy: " ")
+                    self.firstName = nameComponents.first ?? ""
+                    self.lastName = nameComponents.last ?? ""
+                } else {
+                    self.firstName = ""
+                    self.lastName = ""
+                }
+
+                self.photoUrl = user.photoURL?.absoluteString
+                self.isAnon = user.isAnonymous
+
+                // Determine the actual provider by checking the providerData
+                for userInfo in user.providerData {
+                    self.provider = AuthenticationMethod(rawValue: userInfo.providerID)
+                    print("Determined AuthenticationMethod: \(self.provider.rawValue)")
+                    break  // Assume the first non-unknown provider is the one we want
+                }
             }
-
-            self.photoUrl = user.photoURL?.absoluteString
-            self.isAnon = user.isAnonymous
-
-            // Log the providerID from Firebase User
-            print("Firebase User providerID: \(user.providerID)")
-
-            // Determine the AuthenticationMethod based on the providerID
-            self.provider = AuthenticationMethod(rawValue: user.providerID)
-
-            // Log the determined AuthenticationMethod
-            print("Determined AuthenticationMethod: \(self.provider.rawValue)")
         }
-    }
-
-
-
-
+    
     @Published public var authError: Error?
     enum CustomError: Error {
         case credentialAlreadyInUse
@@ -218,7 +215,7 @@ extension AuthenticationManager {
 }
 // MARK: - Helper Structures
 extension AuthenticationManager {
-
+    
     public enum UserIntent: String, CaseIterable, Identifiable {
         case newUser = "New User"
         case returningUser = "Returning User"
@@ -248,9 +245,7 @@ extension AuthenticationManager {
             }
         }
     }
-
-
-
+    
     public struct GoogleSignInResultModel {
         public let idToken: String
         public let accessToken: String
