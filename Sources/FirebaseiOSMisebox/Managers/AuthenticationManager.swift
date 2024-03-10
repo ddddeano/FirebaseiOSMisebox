@@ -7,21 +7,31 @@ public class AuthenticationManager: ObservableObject {
     public struct FirebaseUser {
         public let uid: String
         public let email: String?
-        public let name: String?
+        public let firstName: String
+        public let lastName: String
         public let photoUrl: String?
         public let isAnon: Bool
-        public let provider: AuthenticationMethod // Updated property for provider
+        public let provider: AuthenticationMethod
         
         public init(user: User) {
             self.uid = user.uid
             self.email = user.email
-            self.name = user.displayName
+            
+            if let displayName = user.displayName {
+                let nameComponents = displayName.components(separatedBy: " ")
+                self.firstName = nameComponents.first ?? ""
+                self.lastName = nameComponents.last ?? ""
+            } else {
+                self.firstName = ""
+                self.lastName = ""
+            }
+
             self.photoUrl = user.photoURL?.absoluteString
             self.isAnon = user.isAnonymous
             self.provider = AuthenticationMethod(rawValue: user.providerID)
         }
     }
-    
+
     @Published public var authError: Error?
     enum CustomError: Error {
         case credentialAlreadyInUse
