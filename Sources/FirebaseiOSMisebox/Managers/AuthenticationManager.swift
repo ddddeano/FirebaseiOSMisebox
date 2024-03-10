@@ -18,6 +18,7 @@ public class AuthenticationManager: ObservableObject {
             self.email = user.email
             
             if let displayName = user.displayName {
+                print("Display Name Components: \(displayName)")
                 let nameComponents = displayName.components(separatedBy: " ")
                 self.firstName = nameComponents.first ?? ""
                 self.lastName = nameComponents.last ?? ""
@@ -30,6 +31,7 @@ public class AuthenticationManager: ObservableObject {
             self.isAnon = user.isAnonymous
             self.provider = AuthenticationMethod(rawValue: user.providerID)
         }
+
     }
 
     @Published public var authError: Error?
