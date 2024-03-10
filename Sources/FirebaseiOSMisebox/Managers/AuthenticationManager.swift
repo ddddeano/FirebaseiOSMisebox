@@ -28,9 +28,18 @@ public class AuthenticationManager: ObservableObject {
 
             self.photoUrl = user.photoURL?.absoluteString
             self.isAnon = user.isAnonymous
+
+            // Log the providerID from Firebase User
+            print("Firebase User providerID: \(user.providerID)")
+
+            // Determine the AuthenticationMethod based on the providerID
             self.provider = AuthenticationMethod(rawValue: user.providerID)
+
+            // Log the determined AuthenticationMethod
+            print("Determined AuthenticationMethod: \(self.provider.rawValue)")
         }
     }
+
 
 
 
