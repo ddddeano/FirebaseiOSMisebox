@@ -18,13 +18,9 @@ public class AuthenticationManager: ObservableObject {
             self.email = user.email
             
             if let displayName = user.displayName {
-                print("User Display Name: \(displayName)")
                 let nameComponents = displayName.components(separatedBy: " ")
                 self.firstName = nameComponents.first ?? ""
                 self.lastName = nameComponents.last ?? ""
-                // Print extracted first and last names for debugging
-                print("First Name: \(self.firstName)")
-                print("Last Name: \(self.lastName)")
             } else {
                 self.firstName = ""
                 self.lastName = ""
